@@ -169,12 +169,15 @@ class Simulation(object):
             drone = Vehicle(uniform(0,100), uniform(0,100), self.behaviors[-1], self.screenSimulation.screen)
             self.swarm.append(drone)
 
+            self.swarm[-1].drone_id = len(self.swarm)
+
     def add_new_uav(self):
         self.behaviors.append( FiniteStateMachine( SeekState() ) )
         drone = Vehicle(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, self.behaviors[-1], self.screenSimulation.screen)
 
         drone.set_target(vec2(pygame.mouse.get_pos()[0],pygame.mouse.get_pos()[1]))
         self.append_uav(drone)
+        self.swarm[-1].drone_id = len(self.swarm)
     
     def append_uav(self, drone):
         self.swarm.append(drone)

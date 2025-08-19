@@ -6,7 +6,7 @@ import random
 import copy 
 import numpy as np
 from typing import List, Optional, Tuple, Union
-
+import time
 
 vec2 = pg.math.Vector2
 
@@ -62,6 +62,10 @@ class Vehicle(object):
         self.grid_map = None
         self.found = False
 
+         # --- Heartbeat (1 Hz) ---
+        self._last_heartbeat = 0.0  # seconds
+        self.drone_id = getattr(self, 'drone_id', None)
+
     def reached_goal(self, target):
         return target and (target - self.location).length() <= RADIUS_TARGET 
     
@@ -92,6 +96,9 @@ class Vehicle(object):
         # size of track
         if len(self.memory_location) > SIZE_TRACK:
             self.memory_location.pop(0)
+
+        # Heartbeat at 1 Hz
+        self._heartbeat()
 
     def apply_drag(self):
         """
@@ -441,3 +448,11 @@ class Vehicle(object):
     # Deleting (Calling destructor)
     #def __del__(self):
         #print('Drone Deleted')
+
+    def _heartbeat(self):
+        """Print a 1 Hz status line for this drone."""
+        now = time.time()
+        if now - getattr(self, "_last_heartbeat", 0.0) >= 1.0:
+            self._last_heartbeat = now
+            ident = self.drone_id if self.drone_id is not None else hex(id(self))[-4:]
+            print(f"[HEARTBEAT] drone={ident} pos=({self.location.x:.1f},{self.location.y:.1f}) v={self.velocity.length():.2f}")
