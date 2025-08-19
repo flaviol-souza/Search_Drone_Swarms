@@ -37,6 +37,15 @@ class ScanInterface:
         drone.align_direction_with_swarm(simulation.swarm, index)
         drone.collision_avoidance(simulation.swarm, list_obst, index) 
         drone.update()
+        # Se houve heartbeat neste passo e o drone está sob cobertura, incrementa a confiança
+        if getattr(drone, "_hb_emitted", False):
+            hit, ant = simulation.obstacles.coverage_contains(drone.location)
+            if hit:
+                did = getattr(drone, "drone_id", None)
+                if did is not None:
+                    simulation.target_confidence[did] += 1
+            drone._hb_emitted = False  # reseta o flag para o próximo passo
+
         drone.draw(simulation.screenSimulation.screen) 
     
     def draw_legend(self, drone, simulation, index) -> None:

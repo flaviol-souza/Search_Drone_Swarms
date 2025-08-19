@@ -65,6 +65,7 @@ class Vehicle(object):
          # --- Heartbeat (1 Hz) ---
         self._last_heartbeat = 0.0  # seconds
         self.drone_id = getattr(self, 'drone_id', None)
+        self._hb_emitted = False
 
     def reached_goal(self, target):
         return target and (target - self.location).length() <= RADIUS_TARGET 
@@ -456,3 +457,4 @@ class Vehicle(object):
             self._last_heartbeat = now
             ident = self.drone_id if self.drone_id is not None else hex(id(self))[-4:]
             print(f"[HEARTBEAT] drone={ident} pos=({self.location.x:.1f},{self.location.y:.1f}) v={self.velocity.length():.2f}")
+            self._hb_emitted = True

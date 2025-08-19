@@ -12,6 +12,7 @@ from utils import Npc_target
 from grid import GridField
 import numpy as np
 import matplotlib.pyplot as plt
+from collections import defaultdict
 
 vec2 = pygame.math.Vector2
 
@@ -138,6 +139,7 @@ class Simulation(object):
         # Current simulations 
         self.swarm = []
         self.targets_search = [] # memory of targets used in simulations
+        self.target_confidence = defaultdict(int)  # {drone_id: count}
 
         # npc target 
         self.npc = Npc_target()
@@ -237,12 +239,9 @@ class Simulation(object):
         self.table_search = table_search
       
     def draw_obstacles(self):
-        # draws the sprites of tree
-        for _ in self.list_obst: 
-            self.obstacles.all_sprites.draw(self.screenSimulation.screen)
-            self.obstacles.all_sprites.update(_,0)
-            pygame.draw.circle(self.screenSimulation.screen,(200, 200, 200), _, radius=RADIUS_OBSTACLES, width=1)
-            pygame.draw.circle(self.screenSimulation.screen,(200, 200, 200), _, radius=RADIUS_OBSTACLES*1.6 + AVOID_DISTANCE, width=1)
+        # Renderiza Antennas (como obstáculos + cobertura)
+        for pos in self.list_obst:
+            self.obstacles.render_at(self.screenSimulation.screen, pos)
 
     def draw_target(self):
         # draw target - npc
@@ -259,9 +258,49 @@ class Simulation(object):
         # draw obstacles
         self.draw_obstacles()
 
+    def draw_confidence_panel(self):
+        """Desenha o contador de confiança por drone no canto superior direito."""
+        surf = self.screenSimulation.screen
+        font = getattr(self.screenSimulation, 'font20', None) or pygame.font.SysFont(None, 20)
+        small = getattr(self.screenSimulation, 'font16', None) or pygame.font.SysFont(None, 16)
+
+        margin = 12
+        row_h = 22
+        header = "CONFIDENCE (HB in coverage)"
+
+        # ordena por maior contagem e, em seguida, id
+        items = sorted(self.target_confidence.items(), key=lambda kv: (-kv[1], kv[0]))
+        rows = items[:12]  # evita painel gigante
+
+        width = 300
+        height = margin*2 + row_h*(len(rows)+1)
+        panel = pygame.Surface((width, height), pygame.SRCALPHA)
+        panel.fill((20, 20, 20, 150))  # fundo semitransparente
+
+        # header
+        header_surf = font.render(header, True, (240, 240, 240))
+        panel.blit(header_surf, (margin, margin//2))
+
+        # cabeçalho das colunas
+        hdr = small.render("Drone   Count", True, (200,200,200))
+        panel.blit(hdr, (margin, margin + row_h))
+
+        # linhas
+        y = margin + row_h*2
+        for did, cnt in rows:
+            line = small.render(f"{did:>5}   {cnt}", True, (230, 230, 230))
+            panel.blit(line, (margin, y))
+            y += row_h
+
+        # top-right
+        x = SCREEN_WIDTH - width - margin
+        y = margin
+        surf.blit(panel, (x, y))
+
     def run_simulation(self):
         # draw grid of visited cels, target and obstacles
         self.draw()
+        self.draw_confidence_panel()
 
         # Target is Found: pass it to all drones
         if self.found:
