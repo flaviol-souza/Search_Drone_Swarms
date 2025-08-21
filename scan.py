@@ -50,6 +50,17 @@ class ScanInterface:
                 )
             drone._hb_emitted = False
 
+            # Registro no Ground Station (sempre que o heartbeat foi emitido)
+            # t = relógio da simulação (segundos)
+            t = simulation.time_executing
+            # usa a posição real do simulador como "verdade de terreno"
+            simulation.ground.observe_heartbeat(
+                rid=drone.drone_id,
+                t=t,
+                pos_gt=drone.location
+            )
+            # (separadamente, você já zera _hb_emitted no bloco existente)
+
         drone.draw(simulation.screenSimulation.screen) 
     
     def draw_legend(self, drone, simulation, index) -> None:

@@ -34,10 +34,10 @@ class DroneSimulation:
         self.simulation = Simulation(
             self.screen_simulation, 
             RateSimulation(
-                10, 
-                [10], 
-                [20], 
-                [DefineTargetScan(), RowScan()]
+                10, #repetitions
+                [NUM_DRONES], #num_swarm
+                [NUM_OBSTACLES], #num_obstacles
+                [DefineTargetScan(), RowScan()]#algorithms
             )
         )
         self.simulation.set_target(initial_target)

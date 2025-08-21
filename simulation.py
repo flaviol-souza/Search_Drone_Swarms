@@ -5,6 +5,7 @@ import csv
 from constants import *
 from vehicle import Vehicle
 from vci_tracker import VCITracker
+from ground_station import GroundStation
 from scan import ScanInterface
 from state_machine import FiniteStateMachine, SeekState, SearchTargetState
 from random import uniform
@@ -151,6 +152,16 @@ class Simulation(object):
         self.all_sprites.add(self.npc)
 
         self.create_swarm_uav(rate.in_num_swarm[0])
+        # Posição do GS = média das posições iniciais dos drones (origem do grupo)
+        if len(self.swarm) > 0:
+            mx = sum(d.location.x for d in self.swarm) / len(self.swarm)
+            my = sum(d.location.y for d in self.swarm) / len(self.swarm)
+        else:
+            mx, my = SCREEN_WIDTH * 0.1, SCREEN_HEIGHT * 0.1  # fallback
+
+        self.ground = GroundStation(position=vec2(150, 150), sigma_px=8.0, name="GS-1")
+        self.ground.attach_drones([getattr(d, "drone_id", i+1) for i, d in enumerate(self.swarm)])
+
 
         # target 
         self.target_simulation = self.generate_new_random_target()
@@ -292,6 +303,9 @@ class Simulation(object):
         self.draw_target()
         # draw obstacles
         self.draw_obstacles()
+        # desenha o Ground Station
+        self.ground.draw(self.screenSimulation.screen)
+
 
     def draw_confidence_panel(self):
         """Desenha o contador de confiança por drone no canto superior direito."""

@@ -6,7 +6,7 @@ SCREEN_HEIGHT = 1080
 PIX2M = 0.01  # factor to convert from pixels to meters
 M2PIX = 100.0  # factor to convert from meters to pixels
 
-NUM_DRONES = 10 # Number of simultaneous drones
+NUM_DRONES = 1 # Number of simultaneous drones
 SIZE_DRONE = 18
 
 SIZE_TRACK = 1
