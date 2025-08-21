@@ -25,6 +25,7 @@ class Vehicle(object):
 
         # Variables used to move drone 
         self.location = vec2(x,y) # Random position in screen
+        self.location_pub = self.location.copy()   # posição “publicada“ (GNSS) — por ora = GT
         self.velocity = vec2(0.1,0) # Inicial speed
         self.mission_target = vec2(x,y)
         self.target = vec2(x,y)
@@ -98,6 +99,7 @@ class Vehicle(object):
         if len(self.memory_location) > SIZE_TRACK:
             self.memory_location.pop(0)
 
+        self.location_pub = self.location  # baseline: sem ruído; futuramente podemos aplicar jamming/ruído
         # Heartbeat at 1 Hz
         self._heartbeat()
 

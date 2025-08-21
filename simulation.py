@@ -4,6 +4,7 @@ import math
 import csv
 from constants import *
 from vehicle import Vehicle
+from vci_tracker import VCITracker
 from scan import ScanInterface
 from state_machine import FiniteStateMachine, SeekState, SearchTargetState
 from random import uniform
@@ -140,6 +141,9 @@ class Simulation(object):
         self.swarm = []
         self.targets_search = [] # memory of targets used in simulations
         self.target_confidence = defaultdict(int)  # {drone_id: count}
+        self.vci = VCITracker()            # novo tracker
+        self.vci_fused = {}                # opcional: cache para exibir
+        self.rvl = {}                      # opcional: cache para exibir
 
         # npc target 
         self.npc = Npc_target()
@@ -153,6 +157,37 @@ class Simulation(object):
         self.targets_search.append(self.target_simulation)
 
         #self.set_target_using_search_pattern(self.target_simulation)
+
+    def draw_vci_panel(self):
+        """Painel no canto superior direito: RID | VCI_fused | RVL | #ant."""
+        surf = self.screenSimulation.screen
+        font = getattr(self.screenSimulation, 'font20', None) or pygame.font.SysFont(None, 20)
+        small = getattr(self.screenSimulation, 'font16', None) or pygame.font.SysFont(None, 16)
+
+        rows = self.vci.panel_rows(max_rows=12)
+
+        margin = 12
+        row_h = 22
+        width = 360
+        height = margin*2 + row_h*(len(rows)+2)
+        panel = pygame.Surface((width, height), pygame.SRCALPHA)
+        panel.fill((20, 20, 20, 150))
+
+        header = font.render("VCI_fused / RVL", True, (240,240,240))
+        panel.blit(header, (margin, margin//2))
+
+        hdr = small.render("RID    VCI_fused   RVL   #ant", True, (200,200,200))
+        panel.blit(hdr, (margin, margin + row_h))
+
+        y = margin + row_h*2
+        for rid, vf, rvl, nants in rows:
+            line = small.render(f"{rid:>3}     {vf:0.2f}       {rvl}     {nants}", True, (230,230,230))
+            panel.blit(line, (margin, y))
+            y += row_h
+
+        x = SCREEN_WIDTH - width - margin
+        y = margin
+        surf.blit(panel, (x, y))
 
     def generate_obstacles(self):
         # Generates obstacles
@@ -301,6 +336,7 @@ class Simulation(object):
         # draw grid of visited cels, target and obstacles
         self.draw()
         self.draw_confidence_panel()
+        self.draw_vci_panel()
 
         # Target is Found: pass it to all drones
         if self.found:

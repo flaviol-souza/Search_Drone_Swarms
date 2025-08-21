@@ -37,14 +37,18 @@ class ScanInterface:
         drone.align_direction_with_swarm(simulation.swarm, index)
         drone.collision_avoidance(simulation.swarm, list_obst, index) 
         drone.update()
-        # Se houve heartbeat neste passo e o drone está sob cobertura, incrementa a confiança
+        # Se houve heartbeat neste passo e o drone está sob cobertura, gerar VCI_local e atualizar VCI_fused/RVL
         if getattr(drone, "_hb_emitted", False):
             hit, ant = simulation.obstacles.coverage_contains(drone.location)
             if hit:
-                did = getattr(drone, "drone_id", None)
-                if did is not None:
-                    simulation.target_confidence[did] += 1
-            drone._hb_emitted = False  # reseta o flag para o próximo passo
+                simulation.vci.observe(
+                    rid=drone.drone_id,
+                    t=simulation.time_executing,                         # clock do sim
+                    ant=ant,
+                    pos_pub=getattr(drone, 'location_pub', drone.location),  # por ora, use GT
+                    pos_gt=drone.location
+                )
+            drone._hb_emitted = False
 
         drone.draw(simulation.screenSimulation.screen) 
     
