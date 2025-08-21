@@ -6,6 +6,7 @@ from constants import *
 from vehicle import Vehicle
 from vci_tracker import VCITracker
 from ground_station import GroundStation
+from uss import USS
 from scan import ScanInterface
 from state_machine import FiniteStateMachine, SeekState, SearchTargetState
 from random import uniform
@@ -161,7 +162,9 @@ class Simulation(object):
 
         self.ground = GroundStation(position=vec2(150, 150), sigma_px=8.0, name="GS-1")
         self.ground.attach_drones([getattr(d, "drone_id", i+1) for i, d in enumerate(self.swarm)])
-
+        
+        self.uss = USS(name="USS-1")
+        self.ground.set_uss(self.uss)
 
         # target 
         self.target_simulation = self.generate_new_random_target()
@@ -198,6 +201,29 @@ class Simulation(object):
 
         x = SCREEN_WIDTH - width - margin
         y = margin
+        surf.blit(panel, (x, y))
+
+    def draw_uss_panel(self):
+        """Painel simples: RID | n_GS | n_ANT (topo dir., abaixo do VCI)."""
+        rows = self.uss.rows_for_panel(max_rows=12)
+        surf = self.screenSimulation.screen
+        font = self.screenSimulation.font20
+        small = self.screenSimulation.font16
+        margin = 12; row_h = 22
+        width = 280
+        height = margin*2 + row_h*(len(rows)+2)
+        panel = pygame.Surface((width, height), pygame.SRCALPHA)
+        panel.fill((30, 30, 30, 150))
+        header = font.render("USS: reports", True, (240,240,240))
+        panel.blit(header, (margin, margin//2))
+        hdr = small.render("RID   n_GS   n_ANT", True, (200,200,200))
+        panel.blit(hdr, (margin, margin + row_h))
+        y = margin + row_h*2
+        for rid, n_gs, n_ant in rows:
+            line = small.render(f"{rid:>3}   {n_gs:>4}    {n_ant:>5}", True, (230,230,230))
+            panel.blit(line, (margin, y)); y += row_h
+        x = SCREEN_WIDTH - width - margin
+        y = 12 + 22 + 12 + 200  # posicione abaixo do painel de VCI, ajuste à sua UI
         surf.blit(panel, (x, y))
 
     def generate_obstacles(self):
@@ -351,6 +377,7 @@ class Simulation(object):
         self.draw()
         self.draw_confidence_panel()
         self.draw_vci_panel()
+        self.draw_uss_panel()
 
         # Target is Found: pass it to all drones
         if self.found:

@@ -37,7 +37,7 @@ class DroneSimulation:
                 10, #repetitions
                 [NUM_DRONES], #num_swarm
                 [NUM_OBSTACLES], #num_obstacles
-                [DefineTargetScan(), RowScan()]#algorithms
+                [DefineTargetScan(), RowScan()]#search algorithms
             )
         )
         self.simulation.set_target(initial_target)

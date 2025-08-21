@@ -20,6 +20,10 @@ class GroundStation:
         # armazenamento: rid -> deque[(t, est_x, est_y)]
         self.obs: Dict[int, Deque[Tuple[float, float, float]]] = defaultdict(lambda: deque(maxlen=300))
 
+    def set_uss(self, uss):
+        """Registra a instância do USS para notificar a cada heartbeat observado."""
+        self.uss = uss
+
     def attach_drone(self, rid: int):
         self.managed_rids.add(int(rid))
 
@@ -45,6 +49,12 @@ class GroundStation:
         est_x = float(pos_gt.x + np.random.normal(0.0, self.sigma_px))
         est_y = float(pos_gt.y + np.random.normal(0.0, self.sigma_px))
         self.obs[rid].append((t, est_x, est_y))
+        # notifica o USS (se houver)
+        if hasattr(self, "uss") and self.uss is not None:
+            self.uss.report_gs_estimate(
+                rid=rid, t=t, x=est_x, y=est_y, gs_name=self.name
+            )
+
         return vec2(est_x, est_y)
 
     # --------- (Opcional) desenho do GS no mapa ----------

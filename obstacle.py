@@ -43,6 +43,7 @@ class Obstacles(object):
             ant = Antenna(pos=vec2(x, y), body_radius=12, shape=shape, size=size,
                           orientation_deg=heading, color=color, alpha=50)
             ant.set_params()  # assegura cache
+            ant.ant_id = len(self.antennas) + 1
             self.antennas.append(ant)
             self.obst.append(ant.as_obstacle_point())
 

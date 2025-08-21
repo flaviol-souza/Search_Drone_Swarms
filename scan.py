@@ -48,6 +48,14 @@ class ScanInterface:
                     pos_pub=getattr(drone, 'location_pub', drone.location),  # por ora, use GT
                     pos_gt=drone.location
                 )
+                simulation.uss.report_antenna_observation(
+                    rid=drone.drone_id,
+                    t=simulation.time_executing,
+                    ant_id=getattr(ant, "ant_id", 0),
+                    shape=getattr(ant, "shape", "circle"),
+                    x_pub=getattr(drone, 'location_pub', drone.location).x,
+                    y_pub=getattr(drone, 'location_pub', drone.location).y,
+                )
             drone._hb_emitted = False
 
             # Registro no Ground Station (sempre que o heartbeat foi emitido)
